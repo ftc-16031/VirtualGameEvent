@@ -1,0 +1,18 @@
+GameStartOffset: 0:28
+GameEvents:
+- Time: 0:35
+  Description: "Power Shot Target #A Launched"
+  Point: 15
+- Time: 2:07
+  Description: "Launched Rings into High Goal"
+  Point: 6
+- Time: 2:13
+  Description: "Launched Rings into Medium Goal"
+  Point: 4
+- Time: 2:41
+  Description: "#1 Wobble Goal Delivered to Drop Zone"
+  Point: 20
+- Time: 2:55
+  Description: "#2 Wobble Goal Delivered to Drop Zone"
+  Point: 20
+
