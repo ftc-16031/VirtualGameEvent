@@ -12,12 +12,12 @@
 # Components: 
 
 - Event Planner:
-  - Make composition of each match, and produce a "match manifest" file like following example
+  - Make composition of each match, and produce a ["match manifest"](#match-manifest) file like following example
   - Should hook up with FTC official scoring program to load game data from there.
 
 - Match Video Processer:
   - Download the game video from various of sources (Google Drive, Youtube, etc.)
-  - Collect information to "video manifest" file, such as:
+  - Collect information to ["video manifest"](#video-manifest) file, such as:
     - Offset time in the video when game started
     - A series events happened in the video, such as task accompanished or penalty given
       - Offset time of event in the video
@@ -25,7 +25,7 @@
       - Points changed
 
 - Game Producer:
-  - Take the "match manifest" and ""video manifest" file as input, and composite the virtual game video for preview or save
+  - Take the ["match manifest"](#match-manifest) and ["video manifest"](#video-manifest) file as input, and composite the virtual game video for preview or save
   
 - Game Publisher:
   - Take the virtual game video and publish to target streaming platform (Youtube, Twitch, etc)
