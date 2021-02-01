@@ -30,6 +30,11 @@
 - Game Publisher:
   - Take the virtual game video and publish to target streaming platform (Youtube, Twitch, etc)
   
+# Examples:
+![Screenshot](./examples/league2-vs-league3/screenshot-1.png)
+
+- Check out the examples folder for more details
+
 # Examples of manifest files:
 ## Video Manifest:
 ```yaml
@@ -81,9 +86,6 @@ VirtualGame:
       Location: League3/ftc16031-league3-game6.MP4
       GameManifest: !include League3/ftc16031-league3-game6.yml
 ```
-## More examples:
-- Check out the examples folder
-
 # Current status:
 - Still at the earlier stage, many features are just planned not implemented
 - Defined "match manifest" and ""video manifest" file formats
