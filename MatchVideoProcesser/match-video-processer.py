@@ -9,6 +9,7 @@ Date: 25 Jan 2021
 import platform
 import os
 import sys
+import re
 from os import path
 
 from PySide2 import QtWidgets, QtGui, QtCore
@@ -16,8 +17,25 @@ import vlc
 
 
 def ms_to_mmss(ms):
-    minutes, seconds = divmod(int(ms/1000), 60)
+    return seconds_to_mmss(int(ms/1000))
+
+
+def seconds_to_mmss(time):
+    minutes, seconds = divmod(time, 60)
     return f'{minutes:02}:{seconds:02}'
+
+
+offset_pattern = re.compile(r'^([0-9]+):([0-9]+)$')
+
+
+def mmss_to_seconds(mmss):
+    if type(mmss) == str:
+        offset_parts = offset_pattern.match(mmss)
+        assert offset_parts is not None, 'Game event timestamp must be in "MM:SS" format'
+        return int(offset_parts.group(1)) * 60 + int(offset_parts.group(2))
+    else:
+        print(f'ERROR : cannot process mmss [{mmss}]')
+        return mmss
 
 
 
@@ -26,6 +44,7 @@ class MatchVideoProcessor(QtWidgets.QMainWindow):
     def __init__(self, media_file=None, master=None):
         QtWidgets.QMainWindow.__init__(self, master)
         self.setWindowTitle("Match Video Processor")
+        self.showMaximized()
 
         # Create a basic vlc instance
         self.instance = vlc.Instance()
@@ -69,33 +88,75 @@ class MatchVideoProcessor(QtWidgets.QMainWindow):
         self.playbutton = QtWidgets.QPushButton("Play")
         self.hbuttonbox.addWidget(self.playbutton)
         self.playbutton.clicked.connect(self.play_pause)
-
-        self.stopbutton = QtWidgets.QPushButton("Stop")
-        self.hbuttonbox.addWidget(self.stopbutton)
-        self.stopbutton.clicked.connect(self.stop)
-
-        self.progress = QtWidgets.QLabel("--:--")
-        self.hbuttonbox.addWidget(self.progress)
+        self.resetbutton = QtWidgets.QPushButton("Reset")
+        self.hbuttonbox.addWidget(self.resetbutton)
+        self.resetbutton.clicked.connect(self.reset)
 
         self.hbuttonbox.addStretch(1)
-        self.volumeslider = QtWidgets.QSlider(QtCore.Qt.Horizontal, self)
-        self.volumeslider.setMaximum(100)
-        self.volumeslider.setValue(self.mediaplayer.audio_get_volume())
-        self.volumeslider.setToolTip("Volume")
-        self.hbuttonbox.addWidget(self.volumeslider)
-        self.volumeslider.valueChanged.connect(self.set_volume)
+        self.progress = QtWidgets.QLabel("--:--")
+        self.hbuttonbox.addWidget(self.progress)
+        self.addeventbutton = QtWidgets.QPushButton("Add Event")
+        self.hbuttonbox.addWidget(self.addeventbutton)
+        self.addeventbutton.clicked.connect(self.add_event)
 
         self.htablebox = QtWidgets.QHBoxLayout()
-        self.eventformbox = QtWidgets.QGroupBox("Events:")
-        self.eventform = QtWidgets.QVBoxLayout()
-        # self.eventform.addRow(QtWidgets.QLabel("Time:"), QtWidgets.QLineEdit())
-        self.events = ["Game Start", "Power Shot Target #A Launched", "Power Shot Target #B Launched", "#1 Wobble Goal Delivered to Target Zone"]
-        for item in self.events:
-            self.eventform.addWidget(QtWidgets.QRadioButton(item))
-        self.eventformbox.setLayout(self.eventform)
-        self.htablebox.addWidget(self.eventformbox, stretch=4)
-        self.eventstable = QtWidgets.QTableWidget(5, 3)
-        self.htablebox.addWidget(self.eventstable, stretch=6)
+
+        self.eventstabs = QtWidgets.QTabWidget()
+
+        self.gamestart_tab = QtWidgets.QVBoxLayout()
+        self.gamestart_rb = QtWidgets.QRadioButton("Game Start")
+        self.gamestart_tab.addWidget(self.gamestart_rb)
+        tab_widget = QtWidgets.QWidget()
+        tab_widget.setLayout(self.gamestart_tab)
+        self.eventstabs.addTab(tab_widget, 'Game Start')
+
+        self.autonomous_tab = QtWidgets.QVBoxLayout()
+        self.autonomous_tab.addWidget(QtWidgets.QRadioButton("Power Shot Target Knocked"))
+        self.autonomous_tab.addWidget(QtWidgets.QRadioButton("Wobble Goal Delivered to Target Zone"))
+        self.autonomous_tab.addWidget(QtWidgets.QRadioButton("Launched Rings into Low Goal"))
+        self.autonomous_tab.addWidget(QtWidgets.QRadioButton("Launched Rings into Medium Goal"))
+        self.autonomous_tab.addWidget(QtWidgets.QRadioButton("Launched Rings into High Goal"))
+        self.autonomous_tab.addWidget(QtWidgets.QRadioButton("Robot Parked"))
+        tab_widget = QtWidgets.QWidget()
+        tab_widget.setLayout(self.autonomous_tab)
+        self.eventstabs.addTab(tab_widget, 'Autonomous')
+
+        self.teleop_tab = QtWidgets.QVBoxLayout()
+        self.teleop_tab.addWidget(QtWidgets.QRadioButton("Launched Rings into Low Goal"))
+        self.teleop_tab.addWidget(QtWidgets.QRadioButton("Launched Rings into Medium Goal"))
+        self.teleop_tab.addWidget(QtWidgets.QRadioButton("Launched Rings into High Goal"))
+        tab_widget = QtWidgets.QWidget()
+        tab_widget.setLayout(self.teleop_tab)
+        self.eventstabs.addTab(tab_widget, 'Teleop')
+
+        self.endgame_tab = QtWidgets.QVBoxLayout()
+        self.endgame_tab.addWidget(QtWidgets.QRadioButton("Power Shot Target Knocked"))
+        self.endgame_tab.addWidget(QtWidgets.QRadioButton("Wobble Goal Delivered to Start Line"))
+        self.endgame_tab.addWidget(QtWidgets.QRadioButton("Wobble Goal Delivered to Drop Zone"))
+        self.endgame_tab.addWidget(QtWidgets.QRadioButton("Launched Rings into Low Goal"))
+        self.endgame_tab.addWidget(QtWidgets.QRadioButton("Launched Rings into Medium Goal"))
+        self.endgame_tab.addWidget(QtWidgets.QRadioButton("Launched Rings into High Goal"))
+        self.endgame_tab.addWidget(QtWidgets.QRadioButton("Rings Supported by Wobble Goal"))
+        tab_widget = QtWidgets.QWidget()
+        tab_widget.setLayout(self.endgame_tab)
+        self.eventstabs.addTab(tab_widget, 'End Game')
+
+        self.penalty_tab = QtWidgets.QVBoxLayout()
+        self.penalty_tab.addWidget(QtWidgets.QRadioButton("Minor Penalty"))
+        self.penalty_tab.addWidget(QtWidgets.QRadioButton("Major Penalty"))
+        tab_widget = QtWidgets.QWidget()
+        tab_widget.setLayout(self.penalty_tab)
+        self.eventstabs.addTab(tab_widget, 'Penalty')
+
+        self.htablebox.addWidget(self.eventstabs, stretch=6)
+        self.eventstable = QtWidgets.QTableWidget(2, 2)
+        self.eventstable.setHorizontalHeaderLabels(['Event', 'Points'])
+        self.eventstable.setVerticalHeaderLabels(['--:--', 'Total'])
+        self.eventstable.setItem(1, 1, QtWidgets.QTableWidgetItem('0'))
+        header = self.eventstable.horizontalHeader()
+        header.setSectionResizeMode(0, QtWidgets.QHeaderView.Stretch)
+        header.setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeToContents)
+        self.htablebox.addWidget(self.eventstable, stretch=4)
 
         self.vboxlayout = QtWidgets.QVBoxLayout()
         self.vboxlayout.addWidget(self.videoframe, stretch=10)
@@ -141,13 +202,52 @@ class MatchVideoProcessor(QtWidgets.QMainWindow):
             self.timer.start()
             self.is_paused = False
 
-    def stop(self):
+    def reset(self):
         """Stop player
         """
         self.mediaplayer.stop()
         self.playbutton.setText("Play")
         self.progress.setText("--:--")
+        for row_no in range (self.eventstable.rowCount()):
+            self.eventstable.removeRow(0)
+        self.eventstable.insertRow(0)
+        self.eventstable.insertRow(0)
+        self.eventstable.setVerticalHeaderLabels(['--:--', 'Total'])
+        self.eventstable.setItem(1, 1, QtWidgets.QTableWidgetItem('0'))
 
+    def add_event(self):
+        """ Add the event
+        """
+        seconds = 12
+        event = 'Game Start'
+        point = 10
+        target_row_no = None
+        for row_no in range (self.eventstable.rowCount()):
+            row_name = self.eventstable.verticalHeaderItem(row_no).text()
+            if row_name == '--:--':
+                # no event yet, update the initial row
+                target_row_no = row_no
+            elif row_name == 'Total':
+                # update total row
+                previous_total = int(self.eventstable.item(row_no, 1).text())
+                self.eventstable.item(row_no, 1).setText(str(previous_total + point))
+            elif target_row_no is None:
+                # target row not found yet, compare the time and see if we need to insert
+                row_time = mmss_to_seconds(row_name)
+                if row_time > seconds:
+                    target_row_no = row_no
+                    self.eventstable.insertRow(target_row_no)
+            else:
+                # target row already found, pass
+                pass
+        if target_row_no is None:
+            # insert the row to the end
+            target_row_no = self.eventstable.rowCount() - 2
+            self.eventstable.insertRow(target_row_no)
+        # update target row
+        self.eventstable.setVerticalHeaderItem(target_row_no, QtWidgets.QTableWidgetItem(seconds_to_mmss(seconds)))
+        self.eventstable.setItem(target_row_no, 0, QtWidgets.QTableWidgetItem(event))
+        self.eventstable.setItem(target_row_no, 1, QtWidgets.QTableWidgetItem(str(point)))
 
     def open_file(self):
         """Open a media file in a MediaPlayer
@@ -224,7 +324,7 @@ class MatchVideoProcessor(QtWidgets.QMainWindow):
             # which is not the desired behavior of a media player.
             # This fixes that "bug".
             if not self.is_paused:
-                self.stop()
+                self.reset()
 
 def main():
     """Entry point for our processor
