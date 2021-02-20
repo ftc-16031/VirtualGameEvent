@@ -85,10 +85,23 @@ class MatchVideoProcessor(QtWidgets.QMainWindow):
         self.hbuttonbox.addWidget(self.volumeslider)
         self.volumeslider.valueChanged.connect(self.set_volume)
 
+        self.htablebox = QtWidgets.QHBoxLayout()
+        self.eventformbox = QtWidgets.QGroupBox("Events:")
+        self.eventform = QtWidgets.QVBoxLayout()
+        # self.eventform.addRow(QtWidgets.QLabel("Time:"), QtWidgets.QLineEdit())
+        self.events = ["Game Start", "Power Shot Target #A Launched", "Power Shot Target #B Launched", "#1 Wobble Goal Delivered to Target Zone"]
+        for item in self.events:
+            self.eventform.addWidget(QtWidgets.QRadioButton(item))
+        self.eventformbox.setLayout(self.eventform)
+        self.htablebox.addWidget(self.eventformbox, stretch=4)
+        self.eventstable = QtWidgets.QTableWidget(5, 3)
+        self.htablebox.addWidget(self.eventstable, stretch=6)
+
         self.vboxlayout = QtWidgets.QVBoxLayout()
-        self.vboxlayout.addWidget(self.videoframe)
+        self.vboxlayout.addWidget(self.videoframe, stretch=10)
         self.vboxlayout.addWidget(self.positionslider)
         self.vboxlayout.addLayout(self.hbuttonbox)
+        self.vboxlayout.addLayout(self.htablebox, stretch=7)
 
         self.widget.setLayout(self.vboxlayout)
 
