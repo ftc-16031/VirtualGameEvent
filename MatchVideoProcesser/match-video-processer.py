@@ -10,6 +10,7 @@ import platform
 import os
 import sys
 import re
+import yaml
 from os import path
 
 from PySide2 import QtWidgets, QtGui, QtCore
@@ -129,6 +130,10 @@ class MatchVideoProcessor(QtWidgets.QMainWindow):
         self.addeventbutton = QtWidgets.QPushButton("Add Event")
         self.hbuttonbox.addWidget(self.addeventbutton)
         self.addeventbutton.clicked.connect(self.add_event)
+        self.hbuttonbox.addStretch(1)
+        self.savebutton = QtWidgets.QPushButton("Save Video Manifest")
+        self.hbuttonbox.addWidget(self.savebutton)
+        self.savebutton.clicked.connect(self.save_manifest)
 
         self.htablebox = QtWidgets.QHBoxLayout()
 
@@ -301,6 +306,25 @@ class MatchVideoProcessor(QtWidgets.QMainWindow):
         self.eventstabs.setTabEnabled(4, True)
         self.eventstabs.setCurrentIndex(0)
         self.game_start_offset = None
+        self.savebutton.setEnabled(False)
+
+    def save_manifest(self):
+        pre, ext = os.path.splitext(self.media_filename)
+        manifest_filename, _ = QtWidgets.QFileDialog.getSaveFileName(caption="Match Manifest File", dir=f'{pre}.yml')
+        manifest = {'GameStartOffset': seconds_to_mmss(self.game_start_offset), 'GameEvents': []}
+        for row_no in range(self.eventstable.rowCount()):
+            row_name = self.eventstable.verticalHeaderItem(row_no).text()
+            if row_name != 'Total':
+                # ignore total row
+                event_description = self.eventstable.item(row_no, 0).text()
+                point = int(self.eventstable.item(row_no, 1).text())
+                if event_description != 'Game Start':
+                    # ignore game start row as well
+                    event = {'Time': row_name, 'Description': event_description, 'Point': point}
+                    manifest['GameEvents'].append(event)
+        stream = open(manifest_filename, 'w')
+        yaml.safe_dump(manifest, stream)
+        return
 
     def game_start_event(self, radiobutton, timestamp, associated_widgets):
         self.game_start_offset = timestamp
@@ -309,6 +333,7 @@ class MatchVideoProcessor(QtWidgets.QMainWindow):
         self.eventstabs.setTabEnabled(2, False)
         self.eventstabs.setTabEnabled(3, False)
         self.eventstabs.setCurrentIndex(1)
+        self.savebutton.setEnabled(True)
         return radiobutton.text(), 0, timestamp
 
     def powershot_event(self, radiobutton, timestamp, associated_widgets):
@@ -431,6 +456,7 @@ class MatchVideoProcessor(QtWidgets.QMainWindow):
 
     def open_media_file(self, filename):
 
+        self.media_filename = filename
         self.media = self.instance.media_new(filename)
 
         # Put the media in the media player

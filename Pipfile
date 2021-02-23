@@ -1,6 +1,7 @@
 [packages]
 python-vlc = "*"
 pyside2 = "*"
+pyyaml = "*"
 
 [requires]
 python_version = "3.8"
