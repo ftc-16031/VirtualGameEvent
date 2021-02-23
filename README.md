@@ -25,7 +25,7 @@
   - Make composition of each match, and produce a ["match manifest"](#match-manifest) file like following example
   - Should hook up with FTC official scoring program to load game data from there.
 
-- Match Video Processer:
+- Match Video Processor:
   - Download the game video from various of sources (Google Drive, Youtube, etc.)
   - Collect information to ["video manifest"](#video-manifest) file, such as:
     - Offset time in the video when game started
@@ -40,8 +40,11 @@
 - Game Publisher:
   - Take the virtual game video and publish to target streaming platform (Youtube, Twitch, etc)
   
-# Examples:
-![Screenshot](./examples/league2-vs-league3/screenshot-1.png)
+# Screenshots:
+- Match Video Processor
+![Match Video Processor](./examples/GameVideoProcessor-screenshot-1.png)
+- Video Producer
+![Video Produced](./examples/league2-vs-league3/screenshot-1.png)
 
 - Check out the examples folder for more details
 
