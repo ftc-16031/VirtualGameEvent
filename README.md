@@ -39,7 +39,21 @@
   
 - Game Publisher:
   - Take the virtual game video and publish to target streaming platform (Youtube, Twitch, etc)
-  
+
+# Launch Match Video Processor:
+
+- Run following command from the checkout folder: 
+  pipenv run python MatchVideoProcesser/match-video-processer.py
+
+or 
+
+  pipenv run python MatchVideoProcesser/match-video-processer.py path/to/game-video.mp4
+
+
+# Launch Game Producer:
+
+  pipenv run python GameProducer/bin/producer.py --help
+
 # Screenshots:
 - Match Video Processor
 ![Match Video Processor](./examples/league2-vs-league3/GameVideoProcessor-screenshot-1.png)
