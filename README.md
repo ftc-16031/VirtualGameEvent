@@ -4,10 +4,20 @@
 - It's not meant to replace the official scoring software and process at all.
 - It's open-source, feel free to use it for your event, and even better contribute to make this project better serve more teams.
 
+# Offline Mode:
+
+![Offline Mode](Offline-VirtualGameEvent.png?raw=true "Offline Mode")
+
 # Prerequisite : 
 
-- Python : > 3 (install from: https://www.python.org/downloads/)
+- Python : > 3.8 (install from: https://www.python.org/downloads/, support Windows, MacOS, and Linux)
+- pipenv : $ pip install pipenv
 - ffmpeg : > 4.2 (install from: https://ffmpeg.org/download.html, support Windows, MacOS, and Linux)
+- vlc : > 3.0 (install from: https://www.videolan.org/vlc/index.html, support Windows, MacOS, and Linux)
+
+# Setup : 
+
+- $ pipenv install --dev
 
 # Components: 
 
@@ -15,7 +25,7 @@
   - Make composition of each match, and produce a ["match manifest"](#match-manifest) file like following example
   - Should hook up with FTC official scoring program to load game data from there.
 
-- Match Video Processer:
+- Match Video Processor:
   - Download the game video from various of sources (Google Drive, Youtube, etc.)
   - Collect information to ["video manifest"](#video-manifest) file, such as:
     - Offset time in the video when game started
@@ -29,9 +39,26 @@
   
 - Game Publisher:
   - Take the virtual game video and publish to target streaming platform (Youtube, Twitch, etc)
-  
-# Examples:
-![Screenshot](./examples/league2-vs-league3/screenshot-1.png)
+
+# Launch Match Video Processor:
+
+- Run following command from the checkout folder: 
+  pipenv run python MatchVideoProcesser/match-video-processer.py
+
+or 
+
+  pipenv run python MatchVideoProcesser/match-video-processer.py path/to/game-video.mp4
+
+
+# Launch Game Producer:
+
+  pipenv run python GameProducer/bin/producer.py --help
+
+# Screenshots:
+- Match Video Processor
+![Match Video Processor](./examples/league2-vs-league3/GameVideoProcessor-screenshot-1.png)
+- Video Producer
+![Video Produced](./examples/league2-vs-league3/screenshot-1.png)
 
 - Check out the examples folder for more details
 
@@ -90,6 +117,7 @@ VirtualGame:
 - Still at the earlier stage, many features are just planned not implemented
 - Defined "match manifest" and ""video manifest" file formats
 - A first working version of producer script is done
+- A first working version of GameVideoProcessor is done
 
 
 
