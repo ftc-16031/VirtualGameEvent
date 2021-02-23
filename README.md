@@ -4,6 +4,10 @@
 - It's not meant to replace the official scoring software and process at all.
 - It's open-source, feel free to use it for your event, and even better contribute to make this project better serve more teams.
 
+# Offline Mode:
+
+![Offline Mode](Offline-VirtualGameEvent.png?raw=true "Offline Mode")
+
 # Prerequisite : 
 
 - Python : > 3 (install from: https://www.python.org/downloads/)
@@ -90,6 +94,7 @@ VirtualGame:
 - Still at the earlier stage, many features are just planned not implemented
 - Defined "match manifest" and ""video manifest" file formats
 - A first working version of producer script is done
+- A first working version of GameVideoProcessor is done
 
 
 
