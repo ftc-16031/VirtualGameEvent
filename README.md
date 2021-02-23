@@ -42,7 +42,7 @@
   
 # Screenshots:
 - Match Video Processor
-![Match Video Processor](./examples/GameVideoProcessor-screenshot-1.png)
+![Match Video Processor](./examples/league2-vs-league3/GameVideoProcessor-screenshot-1.png)
 - Video Producer
 ![Video Produced](./examples/league2-vs-league3/screenshot-1.png)
 
