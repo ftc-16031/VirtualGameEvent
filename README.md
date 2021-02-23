@@ -10,8 +10,14 @@
 
 # Prerequisite : 
 
-- Python : > 3 (install from: https://www.python.org/downloads/)
+- Python : > 3.8 (install from: https://www.python.org/downloads/, support Windows, MacOS, and Linux)
+- pipenv : $ pip install pipenv
 - ffmpeg : > 4.2 (install from: https://ffmpeg.org/download.html, support Windows, MacOS, and Linux)
+- vlc : > 3.0 (install from: https://www.videolan.org/vlc/index.html, support Windows, MacOS, and Linux)
+
+# Setup : 
+
+- $ pipenv install --dev
 
 # Components: 
 
