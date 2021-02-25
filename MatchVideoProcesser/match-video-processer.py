@@ -303,7 +303,7 @@ class MatchVideoProcessor(QtWidgets.QMainWindow):
         self.eventstabs.setTabEnabled(1, False)
         self.eventstabs.setTabEnabled(2, False)
         self.eventstabs.setTabEnabled(3, False)
-        self.eventstabs.setTabEnabled(4, True)
+        self.eventstabs.setTabEnabled(4, False)
         self.eventstabs.setCurrentIndex(0)
         self.game_start_offset = None
         self.savebutton.setEnabled(False)
@@ -332,6 +332,7 @@ class MatchVideoProcessor(QtWidgets.QMainWindow):
         self.eventstabs.setTabEnabled(1, True)
         self.eventstabs.setTabEnabled(2, False)
         self.eventstabs.setTabEnabled(3, False)
+        self.eventstabs.setTabEnabled(4, True)
         self.eventstabs.setCurrentIndex(1)
         self.savebutton.setEnabled(True)
         return radiobutton.text(), 0, timestamp
