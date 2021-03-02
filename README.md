@@ -15,7 +15,7 @@
 - vlc : > 3.0 (install from: https://www.videolan.org/vlc/index.html, support Windows, MacOS, and Linux)
 
 # Setup : 
-- pipenv: $pip install pipenv
+- $ pip install pipenv
 - $ pipenv install --dev
 
 ## Launch Match Video Processor:
