@@ -11,13 +11,26 @@
 # Prerequisite : 
 
 - Python : > 3.8.7 (install from: https://www.python.org/downloads/, support Windows, MacOS, and Linux)
-- pipenv : $ pip install pipenv
 - ffmpeg : > 4.2 (install from: https://ffmpeg.org/download.html, support Windows, MacOS, and Linux)
 - vlc : > 3.0 (install from: https://www.videolan.org/vlc/index.html, support Windows, MacOS, and Linux)
 
 # Setup : 
-
+- pipenv: $pip install pipenv
 - $ pipenv install --dev
+
+## Launch Match Video Processor:
+
+- Run following command from the checkout folder: 
+  pipenv run python MatchVideoProcesser/match-video-processer.py
+
+or 
+
+ - pipenv run python MatchVideoProcesser/match-video-processer.py path/to/game-video.mp4
+
+
+## Launch Game Producer:
+
+  pipenv run python GameProducer/bin/producer.py --help
 
 # Components: 
 
@@ -40,19 +53,6 @@
 - Game Publisher:
   - Take the virtual game video and publish to target streaming platform (Youtube, Twitch, etc)
 
-# Launch Match Video Processor:
-
-- Run following command from the checkout folder: 
-  pipenv run python MatchVideoProcesser/match-video-processer.py
-
-or 
-
-  pipenv run python MatchVideoProcesser/match-video-processer.py path/to/game-video.mp4
-
-
-# Launch Game Producer:
-
-  pipenv run python GameProducer/bin/producer.py --help
 
 # Screenshots:
 - Match Video Processor
