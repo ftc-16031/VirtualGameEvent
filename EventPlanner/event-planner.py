@@ -42,12 +42,19 @@ class EventPlanner(QtWidgets.QMainWindow):
         header.setSectionResizeMode(2, QtWidgets.QHeaderView.Stretch)
         header.setSectionResizeMode(3, QtWidgets.QHeaderView.Stretch)
 
+        self.hbuttonbox = QtWidgets.QHBoxLayout()
+        self.generatebutton = QtWidgets.QPushButton("Generate Folder Skeleton ...")
+        self.hbuttonbox.addWidget(self.generatebutton)
+        self.generatebutton.clicked.connect(self.generate)
+        self.resetbutton = QtWidgets.QPushButton("Reset")
+        self.hbuttonbox.addWidget(self.resetbutton)
+        self.resetbutton.clicked.connect(self.reset)
+
         self.vboxlayout = QtWidgets.QVBoxLayout()
         self.vboxlayout.addWidget(self.matchstable, stretch=10)
+        self.vboxlayout.addLayout(self.hbuttonbox, stretch=1)
 
         self.widget.setLayout(self.vboxlayout)
-
-
 
         menu_bar = self.menuBar()
 
@@ -89,6 +96,91 @@ class EventPlanner(QtWidgets.QMainWindow):
 
         # getOpenFileName returns a tuple, so use only the actual file name
         self.read_from_db(filename[0])
+
+    def generate(self):
+        """Generate skeleton folders
+        """
+
+        dialog_txt = "Choose the root folder of game files"
+        filename = QtWidgets.QFileDialog.getExistingDirectory(self, dialog_txt, os.path.curdir)
+        if not filename or not os.path.isdir(filename):
+            return
+        if os.listdir(filename):
+            msgBox = QtWidgets.QMessageBox()
+            msgBox.setIcon(QtWidgets.QMessageBox.Warning)
+            msgBox.setText(f"The root folder [{filename}] you choose is not empty, do you want to continue?")
+            msgBox.setWindowTitle("Are you sure?")
+            msgBox.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+            # msgBox.buttonClicked.connect(msgButtonClick)
+
+            returnValue = msgBox.exec()
+            if returnValue != QtWidgets.QMessageBox.Yes:
+                return
+        self.root_folder = filename
+
+        # generate uploads folder
+        upload_folder = os.path.join(self.root_folder, 'Team Uploads')
+        self.ensure_folder_exists(upload_folder)
+        self.create_text_file(os.path.join(upload_folder, 'Please share these folders for individual team separately!'))
+        for match in self.quals:
+            self.generate_team_upload_folder(match['red1'], upload_folder, match['match'], 'Red')
+            self.generate_team_upload_folder(match['red2'], upload_folder, match['match'], 'Red')
+            self.generate_team_upload_folder(match['blue1'], upload_folder, match['match'], 'Blue')
+            self.generate_team_upload_folder(match['blue2'], upload_folder, match['match'], 'Blue')
+        # generate match folder
+        matches_folder = os.path.join(self.root_folder, 'Game Matches')
+        self.ensure_folder_exists(matches_folder)
+        for match in self.quals:
+            match_folder = os.path.join(matches_folder, f'Match #{match["match"]}')
+            self.ensure_folder_exists(match_folder)
+            self.create_text_file(
+                os.path.join(match_folder, 'Please use MatchVideoProcessor to generate Video Manifest yaml file!'))
+            manifest = self.match_manifest(match)
+            stream = open(os.path.join(match_folder, f'match{match["match"]}.yml'), 'w')
+            yaml.safe_dump(manifest, stream)
+        # generate game video folder
+        output_folder = os.path.join(self.root_folder, 'Match Video Published')
+        self.ensure_folder_exists(output_folder)
+        self.create_text_file(os.path.join(output_folder, 'Please use GameProducer to generate the Match Videos to here!'))
+        return
+
+    def ensure_folder_exists(self, folder):
+        if not os.path.exists(folder):
+            os.mkdir(folder)
+
+    def create_text_file(self, filename, content=''):
+        if not os.path.exists(filename):
+            f = open(filename, 'a')
+            f.write(content)
+            f.close()
+
+    def generate_team_upload_folder(self, team_number, upload_folder, match_number, alliance):
+        team = self.get_team_info(team_number)
+        team_folder = os.path.join(upload_folder, f'{team["number"]}-{team["name"]}')
+        self.ensure_folder_exists(team_folder)
+        self.create_text_file(os.path.join(team_folder, 'Please upload the game video file (mp4, 480p suggested) to corresponding match folder'))
+        match_folder = os.path.join(team_folder, f'Match #{match_number} {alliance} Alliance')
+        self.ensure_folder_exists(match_folder)
+        self.create_text_file(os.path.join(match_folder, f'Please upload the match video file of #{match_number} ({alliance} Alliance) to this folder'))
+
+    def match_video_file_prefix(self, alliance, team_number, match_number):
+        return f'match{match_number}-{alliance}-team{team_number}'
+
+    def match_manifest(self, match):
+        teams = []
+        team = self.get_team_info(match['red1'])
+        file_name = self.match_video_file_prefix('red', team['number'], match['match'])
+        teams.append({'TeamName': team['name'], 'TeamNumber': team['number'], 'GameVideo': {'Location': f'{file_name}.mp4', 'VideoManifest': f'!include {file_name}.yml'}})
+        team = self.get_team_info(match['red2'])
+        file_name = self.match_video_file_prefix('red', team['number'], match['match'])
+        teams.append({'TeamName': team['name'], 'TeamNumber': team['number'], 'GameVideo': {'Location': f'{file_name}.mp4', 'VideoManifest': f'!include {file_name}.yml'}})
+        team = self.get_team_info(match['blue1'])
+        file_name = self.match_video_file_prefix('blue', team['number'], match['match'])
+        teams.append({'TeamName': team['name'], 'TeamNumber': team['number'], 'GameVideo': {'Location': f'{file_name}.mp4', 'VideoManifest': f'!include {file_name}.yml'}})
+        team = self.get_team_info(match['blue2'])
+        file_name = self.match_video_file_prefix('blue', team['number'], match['match'])
+        teams.append({'TeamName': team['name'], 'TeamNumber': team['number'], 'GameVideo': {'Location': f'{file_name}.mp4', 'VideoManifest': f'!include {file_name}.yml'}})
+        return {'VirtualGame': {'Name': f'Match #{match["match"]}', 'Teams': teams}}
 
     def get_team_info(self, team_number):
         for row in self.teams:
