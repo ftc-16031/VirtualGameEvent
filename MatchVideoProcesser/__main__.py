@@ -514,7 +514,7 @@ class MatchVideoProcessor(QtWidgets.QMainWindow):
         # automatically switch the events tab status based on game start offset
         if self.game_start_offset is not None:
             seconds_from_game_start = int(self.mediaplayer.get_time()/1000) - self.game_start_offset
-            if 0 <= seconds_from_game_start < 35:
+            if 0 <= seconds_from_game_start < 42:
                 # enable the 'autonomous' tab
                 self.eventstabs.setTabEnabled(1, True)
                 # self.eventstabs.setCurrentIndex(1)
@@ -522,21 +522,21 @@ class MatchVideoProcessor(QtWidgets.QMainWindow):
                 # disable the 'teleop' and 'end game' tab
                 self.eventstabs.setTabEnabled(2, False)
                 self.eventstabs.setTabEnabled(3, False)
-            if 25 <= seconds_from_game_start < 125:
+            if 25 <= seconds_from_game_start < 130:
                 # enable the 'teleop' tab
                 self.eventstabs.setTabEnabled(2, True)
-                if seconds_from_game_start == 30:
+                if seconds_from_game_start == 35:
                     self.eventstabs.setCurrentIndex(2)
-            if 35 <= seconds_from_game_start < 115:
+            if 30 <= seconds_from_game_start < 122:
                 # disable the 'autonomous' and 'end game' tab
                 self.eventstabs.setTabEnabled(1, False)
                 self.eventstabs.setTabEnabled(3, False)
-            if 115 <= seconds_from_game_start < 155:
+            if 122 <= seconds_from_game_start < 170:
                 # enable the 'end game' tab
                 self.eventstabs.setTabEnabled(3, True)
-                if seconds_from_game_start == 120:
+                if seconds_from_game_start == 130:
                     self.eventstabs.setCurrentIndex(3)
-            if 125 <= seconds_from_game_start < 155:
+            if 125 <= seconds_from_game_start < 170:
                 # disable the 'autonomous' and 'teleop' tab
                 self.eventstabs.setTabEnabled(1, False)
                 self.eventstabs.setTabEnabled(2, False)
