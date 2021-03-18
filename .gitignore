@@ -1,0 +1,5 @@
+.idea/
+build/
+dist/
+event-planner.spec
+match-video-processer.spec
