@@ -285,10 +285,10 @@ class EventPlanner(QtWidgets.QMainWindow):
                 status, blue1_score = self.video_status(upload_folder, match['match'], match['blue1'], 'Blue', row_no, 5)
                 status, blue2_score = self.video_status(upload_folder, match['match'], match['blue2'], 'Blue', row_no, 7)
                 if red1_score and red2_score:
-                    item = self.matchstable.getItem(row_no, 4)
+                    item = self.matchstable.item(row_no, 4)
                     item.setText(str(red1_score + red2_score))
                 if blue1_score and blue2_score:
-                    item = self.matchstable.getItem(row_no, 9)
+                    item = self.matchstable.item(row_no, 9)
                     item.setText(str(blue1_score + blue2_score))
                 row_no += 1
 
