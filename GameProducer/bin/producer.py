@@ -115,14 +115,14 @@ with open(args.manifest) as file:
         assert 'GameVideo' in team
         assert 'Location' in team['GameVideo']
         assert path.isfile(team['GameVideo']['Location'])
-        assert 'GameManifest' in team['GameVideo']
-        assert 'GameStartOffset' in team['GameVideo']['GameManifest']
-        offset_seconds = mmss_to_seconds(team['GameVideo']['GameManifest']['GameStartOffset'])
+        assert 'VideoManifest' in team['GameVideo']
+        assert 'GameStartOffset' in team['GameVideo']['VideoManifest']
+        offset_seconds = mmss_to_seconds(team['GameVideo']['VideoManifest']['GameStartOffset'])
         start_offset = min(start_offset, offset_seconds)
         team['GameVideo']['GameStartOffsetInSecond'] = offset_seconds
-        assert 'GameEvents' in team['GameVideo']['GameManifest']
+        assert 'GameEvents' in team['GameVideo']['VideoManifest']
         previous_event_time = 0
-        for event in team['GameVideo']['GameManifest']['GameEvents']:
+        for event in team['GameVideo']['VideoManifest']['GameEvents']:
             assert 'Time' in event
             event['TimeInSeconds'] = mmss_to_seconds(event['Time'])
             # assure the events are in order
@@ -142,7 +142,7 @@ with open(args.manifest) as file:
         team['GameVideo']['PlayStartOffset'] = video_start_offset
         srt = EventSrt(project_name, file_no)
         srt.one_event(start_offset, 'Game Start!', None)
-        for event in team['GameVideo']['GameManifest']['GameEvents']:
+        for event in team['GameVideo']['VideoManifest']['GameEvents']:
             srt.one_event(event["TimeInSeconds"] - video_start_offset, event["Description"], event["Point"])
         srt.flush_event()
         team['GameVideo']['GameScoreSubtitle'] = srt.srt_path
