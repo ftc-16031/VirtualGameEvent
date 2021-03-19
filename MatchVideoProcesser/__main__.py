@@ -234,11 +234,12 @@ class MatchVideoProcessor(QtWidgets.QMainWindow):
         self.eventstabs.addTab(tab_widget, 'Penalty')
 
         self.htablebox.addWidget(self.eventstabs, stretch=6)
-        self.eventstable = QtWidgets.QTableWidget(2, 2)
-        self.eventstable.setHorizontalHeaderLabels(['Event', 'Points'])
+        self.eventstable = QtWidgets.QTableWidget(2, 3)
+        self.eventstable.setHorizontalHeaderLabels(['Event', 'Points', ''])
         header = self.eventstable.horizontalHeader()
         header.setSectionResizeMode(0, QtWidgets.QHeaderView.Stretch)
         header.setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(2, QtWidgets.QHeaderView.ResizeToContents)
         self.htablebox.addWidget(self.eventstable, stretch=4)
 
         self.vboxlayout = QtWidgets.QVBoxLayout()
@@ -416,7 +417,7 @@ class MatchVideoProcessor(QtWidgets.QMainWindow):
 
     def update_events_table(self, seconds, event, point):
         target_row_no = None
-        for row_no in range (self.eventstable.rowCount()):
+        for row_no in range(self.eventstable.rowCount()):
             row_name = self.eventstable.verticalHeaderItem(row_no).text()
             if row_name == '--:--':
                 # no event yet, update the initial row
@@ -432,8 +433,9 @@ class MatchVideoProcessor(QtWidgets.QMainWindow):
                     target_row_no = row_no + 1
                     self.eventstable.insertRow(target_row_no)
             else:
-                # target row already found, pass
-                pass
+                # target row already found, add +1 to all the row number for the delete button
+                button = self.eventstable.cellWidget(row_no, 2)
+                button.setProperty('row_no', button.property('row_no') + 1)
         if target_row_no is None:
             # insert the row to the end
             target_row_no = self.eventstable.rowCount() - 1
@@ -442,6 +444,20 @@ class MatchVideoProcessor(QtWidgets.QMainWindow):
         self.eventstable.setVerticalHeaderItem(target_row_no, QtWidgets.QTableWidgetItem(seconds_to_mmss(seconds)))
         self.eventstable.setItem(target_row_no, 0, QtWidgets.QTableWidgetItem(event))
         self.eventstable.setItem(target_row_no, 1, QtWidgets.QTableWidgetItem(str(point)))
+        if event != 'Game Start':
+            # only add delete button for point events
+            button = QtWidgets.QPushButton('X')
+            button.setProperty('row_no', target_row_no)
+            button.clicked.connect(self.delete_button_click)
+            self.eventstable.setCellWidget(target_row_no, 2, button)
+
+    def delete_button_click(self):
+        delete_row_no = self.sender().property("row_no")
+        self.eventstable.removeRow(delete_row_no)
+        for row_no in range (delete_row_no, self.eventstable.rowCount()):
+            button = self.eventstable.cellWidget(row_no, 2)
+            if button:
+                button.setProperty('row_no', button.property('row_no') - 1)
 
     def open_file(self):
         """Open a media file in a MediaPlayer
