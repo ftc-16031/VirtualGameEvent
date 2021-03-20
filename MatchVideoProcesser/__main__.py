@@ -473,6 +473,8 @@ class MatchVideoProcessor(QtWidgets.QMainWindow):
 
     def open_media_file(self, filename):
 
+        self.reset()
+
         self.media_filename = filename
         self.media = self.instance.media_new(filename)
 
@@ -543,16 +545,16 @@ class MatchVideoProcessor(QtWidgets.QMainWindow):
                 self.eventstabs.setTabEnabled(2, True)
                 if seconds_from_game_start == 35:
                     self.eventstabs.setCurrentIndex(2)
-            if 30 <= seconds_from_game_start < 122:
+            if 37 <= seconds_from_game_start < 122:
                 # disable the 'autonomous' and 'end game' tab
                 self.eventstabs.setTabEnabled(1, False)
                 self.eventstabs.setTabEnabled(3, False)
             if 122 <= seconds_from_game_start < 170:
                 # enable the 'end game' tab
                 self.eventstabs.setTabEnabled(3, True)
-                if seconds_from_game_start == 130:
+                if seconds_from_game_start == 128:
                     self.eventstabs.setCurrentIndex(3)
-            if 125 <= seconds_from_game_start < 170:
+            if 133 <= seconds_from_game_start < 170:
                 # disable the 'autonomous' and 'teleop' tab
                 self.eventstabs.setTabEnabled(1, False)
                 self.eventstabs.setTabEnabled(2, False)
@@ -575,7 +577,7 @@ def main():
             print(f'ERROR : Media file passed in [{filename}] not exists')
     player = MatchVideoProcessor(media_file=media_file)
     player.show()
-    player.resize(640, 480)
+    player.resize(1024, 768)
     sys.exit(app.exec_())
 
 if __name__ == "__main__":
