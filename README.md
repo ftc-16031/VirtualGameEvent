@@ -18,14 +18,30 @@
 - $ pip install pipenv
 - $ pipenv install --dev
 
-## Launch Match Video Processor:
+## Launch Event Planner:
 
-- Run following command from the checkout folder: 
-  pipenv run python MatchVideoProcesser/match-video-processer.py
+- Download the latest release code for Windows, and run event-planner.exe
 
 or 
 
- - pipenv run python MatchVideoProcesser/match-video-processer.py path/to/game-video.mp4
+- Run following command from the checkout folder: 
+  pipenv run python event-planner.py
+
+or 
+
+ - pipenv run python event-planner.py path/to/event.db
+## Launch Match Video Processor:
+
+- Download the latest release code for Windows, and run match-video-processer.exe
+
+or 
+
+- Run following command from the checkout folder: 
+  pipenv run python match-video-processer.py
+
+or 
+
+ - pipenv run python match-video-processer.py path/to/game-video.mp4
 
 
 ## Launch Game Producer:
@@ -35,8 +51,13 @@ or
 # Components: 
 
 - Event Planner:
-  - Make composition of each match, and produce a ["match manifest"](#match-manifest) file like following example
-  - Should hook up with FTC official scoring program to load game data from there.
+  - Read the composition of each match and team information defined in FTC score software
+  - Generate folder structure and skeleton of match manifest files
+    - Team Uploads : A folder for individual teams to upload their game videos, organized by team by match
+    - Game Matches : Stored match manifest and video manifest files by match, and referee should run Match Video Processor to review game
+    - Match Video Published : Store the generated match videos for publish
+  - Monitor these folders, and report the progress of each video, match
+  - TBA : Save the score back to FTC score software
 
 - Match Video Processor:
   - Download the game video from various of sources (Google Drive, Youtube, etc.)
@@ -55,6 +76,8 @@ or
 
 
 # Screenshots:
+- Event Planner
+![Event Planner](./examples/EventPlanner-screenshot-1.png)
 - Match Video Processor
 ![Match Video Processor](./examples/league2-vs-league3/GameVideoProcessor-screenshot-1.png)
 - Video Producer
@@ -114,10 +137,11 @@ VirtualGame:
       VideoManifest: League3/ftc16031-league3-game6.yml
 ```
 # Current status:
-- Still at the earlier stage, many features are just planned not implemented
 - Defined "match manifest" and ""video manifest" file formats
-- A first working version of producer script is done
-- A first working version of GameVideoProcessor is done
+- Major feature of Event Planner and Match Video Processor has been implemented
+- TBA : 
+  - Write the score back to FTC score software database
+  - Fine tuning of Event Planner UI
 
 
 
