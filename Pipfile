@@ -2,7 +2,7 @@
 python-vlc = "*"
 pyside2 = "*"
 pyyaml = "*"
-pyyaml-include = "*"
+#pyyaml-include = "*"
 
 [requires]
 python_version = "3.9"

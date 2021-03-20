@@ -93,25 +93,25 @@ VirtualGame:
     Alliance: Blue
     GameVideo:
       Location: League2/ftc16031-league2-game2.MP4
-      VideoManifest: !include League2/ftc16031-league2-game2.yml
+      VideoManifest: League2/ftc16031-league2-game2.yml
   - TeamName: Parabellum League 2 Game 3 
     TeamNumber: 16031
     Alliance: Blue
     GameVideo:
       Location: League2/ftc16031-league2-game3.MP4
-      VideoManifest: !include League2/ftc16031-league2-game3.yml
+      VideoManifest: League2/ftc16031-league2-game3.yml
   - TeamName: Parabellum League 3 Game 5 
     TeamNumber: 16031
     Alliance: Red
     GameVideo:
       Location: League3/ftc16031-league3-game5.MP4
-      VideoManifest: !include League3/ftc16031-league3-game5.yml
+      VideoManifest: League3/ftc16031-league3-game5.yml
   - TeamName: Parabellum League 3 Game 6
     TeamNumber: 16031
     Alliance: Red
     GameVideo:
       Location: League3/ftc16031-league3-game6.MP4
-      VideoManifest: !include League3/ftc16031-league3-game6.yml
+      VideoManifest: League3/ftc16031-league3-game6.yml
 ```
 # Current status:
 - Still at the earlier stage, many features are just planned not implemented

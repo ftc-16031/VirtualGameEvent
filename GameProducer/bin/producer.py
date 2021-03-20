@@ -2,7 +2,6 @@
 import argparse
 import json
 import yaml
-from yamlinclude import YamlIncludeConstructor
 import tempfile
 import os
 from os import path
@@ -12,7 +11,6 @@ import re
 # Read a game manifest file and construct ffmpeg command to produce the game video
 #
 
-YamlIncludeConstructor.add_to_loader_class(loader_class=yaml.SafeLoader, base_dir='.')
 
 parser = argparse.ArgumentParser(description='Read a game manifest file and construct ffmpeg command to produce the game video')
 parser.add_argument('manifest', type=str, help='The manifest file name')
@@ -46,7 +44,9 @@ class EventSrt:
     srt_path = None
 
     def __init__(self, project_name, file_no):
-        fd, self.srt_path = tempfile.mkstemp(suffix='.srt', prefix=f'{project_name}_{file_no}_', text=True)
+        # fd, self.srt_path = tempfile.mkstemp(suffix='.srt', dir='.', prefix=f'{project_name}_{file_no}_', text=True)
+        # TRICKY : the tempfile path doesn't work with ffmpeg subtitles filter, work around : use a file related to cwd
+        self.srt_path = f'{project_name}_{file_no}.srt'
         self.file = open(self.srt_path, 'w')
 
     def event_text(self, event_description, point):
@@ -106,7 +106,7 @@ with open(args.manifest) as file:
     assert 4 == len(game['VirtualGame']['Teams'])
     # iterate all teams
     start_offset = MAX_OFFSET
-    alliance = {'Red':[], 'Blue':[]}
+    alliance = {'Red': [], 'Blue': []}
     for team in game['VirtualGame']['Teams']:
         assert 'TeamName' in team
         assert 'TeamNumber' in team
@@ -116,6 +116,9 @@ with open(args.manifest) as file:
         assert 'Location' in team['GameVideo']
         assert path.isfile(team['GameVideo']['Location'])
         assert 'VideoManifest' in team['GameVideo']
+        assert path.isfile(team['GameVideo']['VideoManifest'])
+        with open(team['GameVideo']['VideoManifest']) as video_manifest_file:
+            team['GameVideo']['VideoManifest'] = yaml.load(video_manifest_file, Loader=yaml.SafeLoader)
         assert 'GameStartOffset' in team['GameVideo']['VideoManifest']
         offset_seconds = mmss_to_seconds(team['GameVideo']['VideoManifest']['GameStartOffset'])
         start_offset = min(start_offset, offset_seconds)
@@ -154,16 +157,18 @@ with open(args.manifest) as file:
     filter_subtitles = ''
     i = 0
     for team in alliance['Blue']:
-        ffmpeg_command += f' -ss {team["GameVideo"]["GameStartOffsetInSecond"] - start_offset} -i {team["GameVideo"]["Location"]}'
-        filter_subtitles +=f"[{i}:v]subtitles={team['GameVideo']['GameScoreSubtitle']}:force_style='Fontsize=16'[v{i}s]; "
-        filter_subtitles +=f"[v{i}s]drawtext=text='FTC #{team['TeamNumber']}':fontcolor=white:fontsize=18:box=1: boxcolor=black@0.5:boxborderw=5:x=20:y=10[v{i}s]; "
-        filter_subtitles +=f"[v{i}s]drawtext=text='{team['TeamName']}':fontcolor=white:fontsize=18:box=1: boxcolor=black@0.5:boxborderw=5:x=20:y=40[v{i}s]; "
+        ffmpeg_command += f' -ss {team["GameVideo"]["GameStartOffsetInSecond"] - start_offset} -i "{team["GameVideo"]["Location"]}"'
+        filter_subtitles +=f'[{i}:v]scale=640:480[v{i}n]; '
+        filter_subtitles +=f'[v{i}n]subtitles=filename={team["GameVideo"]["GameScoreSubtitle"].__repr__()}:force_style=\'Fontsize=16\'[v{i}s]; '
+        filter_subtitles +=f'[v{i}s]drawtext=text=\'FTC #{team["TeamNumber"]}\':fontcolor=white:fontsize=18:box=1: boxcolor=black@0.5:boxborderw=5:x=20:y=10[v{i}s]; '
+        filter_subtitles +=f'[v{i}s]drawtext=text=\'{team["TeamName"]}\':fontcolor=white:fontsize=18:box=1: boxcolor=black@0.5:boxborderw=5:x=20:y=40[v{i}s]; '
         i += 1
     for team in alliance['Red']:
-        ffmpeg_command += f' -ss {team["GameVideo"]["GameStartOffsetInSecond"] - start_offset} -i {team["GameVideo"]["Location"]}'
-        filter_subtitles +=f"[{i}:v]subtitles={team['GameVideo']['GameScoreSubtitle']}:force_style='Fontsize=16'[v{i}s]; "
-        filter_subtitles +=f"[v{i}s]drawtext=text='FTC #{team['TeamNumber']}':fontcolor=white:fontsize=18:box=1: boxcolor=black@0.5:boxborderw=5:x=(w-text_w)-20:y=10[v{i}s]; "
-        filter_subtitles +=f"[v{i}s]drawtext=text='{team['TeamName']}':fontcolor=white:fontsize=18:box=1: boxcolor=black@0.5:boxborderw=5:x=(w-text_w)-20:y=40[v{i}s]; "
+        ffmpeg_command += f' -ss {team["GameVideo"]["GameStartOffsetInSecond"] - start_offset} -i "{team["GameVideo"]["Location"]}"'
+        filter_subtitles +=f'[{i}:v]scale=640:480[v{i}n]; '
+        filter_subtitles +=f'[v{i}n]subtitles=filename={team["GameVideo"]["GameScoreSubtitle"].__repr__()}:force_style=\'Fontsize=16\'[v{i}s]; '
+        filter_subtitles +=f'[v{i}s]drawtext=text=\'FTC #{team["TeamNumber"]}\':fontcolor=white:fontsize=18:box=1: boxcolor=black@0.5:boxborderw=5:x=(w-text_w)-20:y=10[v{i}s]; '
+        filter_subtitles +=f'[v{i}s]drawtext=text=\'{team["TeamName"]}\':fontcolor=white:fontsize=18:box=1: boxcolor=black@0.5:boxborderw=5:x=(w-text_w)-20:y=40[v{i}s]; '
         i += 1
     ffmpeg_command +=f' -filter_complex "{filter_subtitles} ' \
                      f'[v0s][v1s]vstack[left]; [v2s][v3s]vstack[right]; ' \
@@ -173,6 +178,13 @@ with open(args.manifest) as file:
                      f'[left][right]hstack[v]; ' \
                      f'[0:a][1:a]amerge[a]; [a][2:a]amerge[a]; [a][3:a]amerge[a]"' \
                      f' -map "[v]" -map "[a]" -f matroska' \
-                     f' {args.output}'
+                     f' "{args.output}"'
+    print(ffmpeg_command)
     os.system(ffmpeg_command)
+
+    # remove the temporary srt files
+    for team in alliance['Blue']:
+        os.remove(team["GameVideo"]["GameScoreSubtitle"])
+    for team in alliance['Red']:
+        os.remove(team["GameVideo"]["GameScoreSubtitle"])
 
