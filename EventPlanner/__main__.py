@@ -189,19 +189,28 @@ class EventPlanner(QtWidgets.QMainWindow):
         return f'match{match_number}-{alliance}-team{team_number}'
 
     def match_manifest(self, match):
+        match_folder = os.path.join(self.root_folder, self.FOLDER_MATCH, f'Match #{match["match"]}')
         teams = []
         team = self.get_team_info(match['red1'])
-        file_name = self.match_video_file_prefix('red', team['number'], match['match'])
-        teams.append({'TeamName': team['name'], 'TeamNumber': team['number'], 'GameVideo': {'Location': f'{file_name}.mp4', 'VideoManifest': f'!include {file_name}.yml'}})
+        match_file_prefix = self.match_video_file_prefix('red', team['number'], match['match'])
+        match_video_filename = os.path.normpath(os.path.join(match_folder, f'{match_file_prefix}.mp4'))
+        video_manifest_filename = os.path.normpath(os.path.join(match_folder, f'{match_file_prefix}.yml'))
+        teams.append({'TeamName': team['name'], 'TeamNumber': team['number'], 'Alliance': 'Red', 'GameVideo': {'Location': f'{match_video_filename}', 'VideoManifest': f'!include {video_manifest_filename}'}})
         team = self.get_team_info(match['red2'])
-        file_name = self.match_video_file_prefix('red', team['number'], match['match'])
-        teams.append({'TeamName': team['name'], 'TeamNumber': team['number'], 'GameVideo': {'Location': f'{file_name}.mp4', 'VideoManifest': f'!include {file_name}.yml'}})
+        match_file_prefix = self.match_video_file_prefix('red', team['number'], match['match'])
+        match_video_filename = os.path.normpath(os.path.join(match_folder, f'{match_file_prefix}.mp4'))
+        video_manifest_filename = os.path.normpath(os.path.join(match_folder, f'{match_file_prefix}.yml'))
+        teams.append({'TeamName': team['name'], 'TeamNumber': team['number'], 'Alliance': 'Red', 'GameVideo': {'Location': f'{match_video_filename}', 'VideoManifest': f'!include {video_manifest_filename}'}})
         team = self.get_team_info(match['blue1'])
-        file_name = self.match_video_file_prefix('blue', team['number'], match['match'])
-        teams.append({'TeamName': team['name'], 'TeamNumber': team['number'], 'GameVideo': {'Location': f'{file_name}.mp4', 'VideoManifest': f'!include {file_name}.yml'}})
+        match_file_prefix = self.match_video_file_prefix('blue', team['number'], match['match'])
+        match_video_filename = os.path.normpath(os.path.join(match_folder, f'{match_file_prefix}.mp4'))
+        video_manifest_filename = os.path.normpath(os.path.join(match_folder, f'{match_file_prefix}.yml'))
+        teams.append({'TeamName': team['name'], 'TeamNumber': team['number'], 'Alliance': 'Blue', 'GameVideo': {'Location': f'{match_video_filename}', 'VideoManifest': f'!include {video_manifest_filename}'}})
         team = self.get_team_info(match['blue2'])
-        file_name = self.match_video_file_prefix('blue', team['number'], match['match'])
-        teams.append({'TeamName': team['name'], 'TeamNumber': team['number'], 'GameVideo': {'Location': f'{file_name}.mp4', 'VideoManifest': f'!include {file_name}.yml'}})
+        match_file_prefix = self.match_video_file_prefix('blue', team['number'], match['match'])
+        match_video_filename = os.path.normpath(os.path.join(match_folder, f'{match_file_prefix}.mp4'))
+        video_manifest_filename = os.path.normpath(os.path.join(match_folder, f'{match_file_prefix}.yml'))
+        teams.append({'TeamName': team['name'], 'TeamNumber': team['number'], 'Alliance': 'Blue', 'GameVideo': {'Location': f'{match_video_filename}', 'VideoManifest': f'!include {video_manifest_filename}'}})
         return {'VirtualGame': {'Name': f'Match #{match["match"]}', 'Teams': teams}}
 
     def get_team_info(self, team_number):
