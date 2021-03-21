@@ -29,6 +29,19 @@ mvp_a = Analysis(['match-video-processer.py'],
              cipher=block_cipher,
              noarchive=False)
 
+gp_a = Analysis(['game-producer.py'],
+             pathex=['.'],
+             binaries=[],
+             datas=[],
+             hiddenimports=[],
+             hookspath=[],
+             runtime_hooks=[],
+             excludes=[],
+             win_no_prefer_redirects=False,
+             win_private_assemblies=False,
+             cipher=block_cipher,
+             noarchive=False)
+
 # not working
 # MERGE( (ep_a, 'event-planner', 'event-planner'), (mvp_a, 'match-video-processer', 'match-video-processer') )
 
@@ -65,3 +78,21 @@ mvp_exe = EXE(mvp_pyz,
           upx_exclude=[],
           runtime_tmpdir=None,
           console=True )
+
+gp_pyz = PYZ(gp_a.pure, gp_a.zipped_data,
+             cipher=block_cipher)
+gp_exe = EXE(gp_pyz,
+          gp_a.scripts,
+          gp_a.binaries,
+          gp_a.zipfiles,
+          gp_a.datas,
+          [],
+          name='game-producer',
+          debug=False,
+          bootloader_ignore_signals=False,
+          strip=False,
+          upx=True,
+          upx_exclude=[],
+          runtime_tmpdir=None,
+          console=True )
+
