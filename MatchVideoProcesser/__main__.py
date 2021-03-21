@@ -120,9 +120,6 @@ class MatchVideoProcessor(QtWidgets.QMainWindow):
         self.playbutton = QtWidgets.QPushButton("Play")
         self.hbuttonbox.addWidget(self.playbutton)
         self.playbutton.clicked.connect(self.play_pause)
-        self.resetbutton = QtWidgets.QPushButton("Reset")
-        self.hbuttonbox.addWidget(self.resetbutton)
-        self.resetbutton.clicked.connect(self.reset)
 
         self.hbuttonbox.addStretch(1)
         self.progress = QtWidgets.QLabel("--:--")
@@ -131,6 +128,9 @@ class MatchVideoProcessor(QtWidgets.QMainWindow):
         self.hbuttonbox.addWidget(self.addeventbutton)
         self.addeventbutton.clicked.connect(self.add_event)
         self.hbuttonbox.addStretch(1)
+        self.resetbutton = QtWidgets.QPushButton("Reset")
+        self.hbuttonbox.addWidget(self.resetbutton)
+        self.resetbutton.clicked.connect(self.reset_button_clicked)
         self.savebutton = QtWidgets.QPushButton("Save Video Manifest")
         self.hbuttonbox.addWidget(self.savebutton)
         self.savebutton.clicked.connect(self.save_manifest)
@@ -288,8 +288,19 @@ class MatchVideoProcessor(QtWidgets.QMainWindow):
             self.timer.start()
             self.is_paused = False
 
+    def reset_button_clicked(self):
+        msg_box = QtWidgets.QMessageBox()
+        msg_box.setIcon(QtWidgets.QMessageBox.Warning)
+        msg_box.setText(
+            f'Going to reset everything in the events table?')
+        msg_box.setWindowTitle("Are you sure?")
+        msg_box.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+        return_value = msg_box.exec()
+        if return_value == QtWidgets.QMessageBox.Yes:
+            self.reset()
+
     def reset(self):
-        """Stop player
+        """Reset
         """
         self.mediaplayer.stop()
         self.playbutton.setText("Play")
