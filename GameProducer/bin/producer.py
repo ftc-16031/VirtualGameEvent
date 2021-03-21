@@ -99,6 +99,7 @@ class EventSrt:
 with open(args.manifest) as file:
     game = yaml.load(file, Loader=yaml.SafeLoader)
     project_name = path.splitext(path.basename(args.manifest))[0]
+    manifest_folder = path.dirname(args.manifest)
     # validations
     assert 'VirtualGame' in game
     assert 'Name' in game['VirtualGame']
@@ -114,9 +115,14 @@ with open(args.manifest) as file:
         assert team['Alliance'] in ['Red', 'Blue']
         assert 'GameVideo' in team
         assert 'Location' in team['GameVideo']
-        assert path.isfile(team['GameVideo']['Location'])
+        # Tricky : try absolute path first, then fall back to relative path
+        if not path.isfile(team['GameVideo']['Location']):
+            assert path.isfile(path.join(manifest_folder, team['GameVideo']['Location']))
+            team['GameVideo']['Location'] = path.join(manifest_folder, team['GameVideo']['Location'])
         assert 'VideoManifest' in team['GameVideo']
-        assert path.isfile(team['GameVideo']['VideoManifest'])
+        if not path.isfile(team['GameVideo']['VideoManifest']):
+            assert path.isfile(path.join(manifest_folder, team['GameVideo']['VideoManifest']))
+            team['GameVideo']['VideoManifest'] = path.join(manifest_folder, team['GameVideo']['VideoManifest'])
         with open(team['GameVideo']['VideoManifest']) as video_manifest_file:
             team['GameVideo']['VideoManifest'] = yaml.load(video_manifest_file, Loader=yaml.SafeLoader)
         assert 'GameStartOffset' in team['GameVideo']['VideoManifest']
