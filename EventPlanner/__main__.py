@@ -346,8 +346,15 @@ class EventPlanner(QtWidgets.QMainWindow):
         elif status == self.STATUS_COPIED:
             self.message_box(f'Please ask referees to review game video "{self.sender().property("match_video_filename")}" for team #{self.sender().property("team_number")} {self.sender().property("team_name")} and match #{self.sender().property("match_number")}')
         elif status == self.STATUS_UPLOADED:
-            shutil.copy2(self.sender().property("upload_video"), self.sender().property("match_video_filename"))
-            self.update_ui()
+            msg_box = QtWidgets.QMessageBox()
+            msg_box.setIcon(QtWidgets.QMessageBox.Warning)
+            msg_box.setText(f'Going to copy the team uploaded video file [{self.sender().property("upload_video")}] to match video file {self.sender().property("match_video_filename")}?')
+            msg_box.setWindowTitle("Are you sure?")
+            msg_box.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+            return_value = msg_box.exec()
+            if return_value == QtWidgets.QMessageBox.Yes:
+                shutil.copy2(self.sender().property("upload_video"), self.sender().property("match_video_filename"))
+                self.update_ui()
         elif status == self.STATUS_NO_VIDEO:
             self.message_box(f'Please share the folder "{self.sender().property("team_folder")}" to team #{self.sender().property("team_number")} {self.sender().property("team_name")} and ask them to upload game video for match #{self.sender().property("match_number")}')
 
