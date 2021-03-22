@@ -283,6 +283,11 @@ class EventPlanner(QtWidgets.QMainWindow):
             item.setForeground(QtGui.QBrush(QtGui.QColor(QtCore.Qt.blue)))
             self.matchstable.setItem(row_no, 9, item)
 
+            # video button
+            button = QtWidgets.QPushButton('-')
+            self.matchstable.setCellWidget(row_no, 10, button)
+            button.clicked.connect(self.video_button_click)
+
             row_no += 1
 
     def update_ui(self):
@@ -301,6 +306,24 @@ class EventPlanner(QtWidgets.QMainWindow):
                 if blue1_score and blue2_score:
                     item = self.matchstable.item(row_no, 9)
                     item.setText(str(blue1_score + blue2_score))
+                # update video button
+                button = self.matchstable.cellWidget(row_no, 10)
+                if red1_score and red2_score and blue1_score and blue2_score:
+                    publish_video = os.path.normpath(
+                        os.path.join(self.root_folder, self.FOLDER_PUBLISHED, f'match{match["match"]}.mp4'))
+                    match_manifest = os.path.normpath(
+                        os.path.join(self.root_folder, self.FOLDER_MATCH, f'Match #{match["match"]}',
+                                     f'match{match["match"]}.yml'))
+                    button.setProperty('match_number', match["match"])
+                    button.setProperty('publish_video_filename', publish_video)
+                    button.setProperty('match_manifest', match_manifest)
+
+                    if os.path.exists(publish_video):
+                        button.setText(self.STATUS_PUBLISHED)
+                    else:
+                        button.setText(self.STATUS_REVIEWED)
+                else:
+                    button.setText('-')
                 row_no += 1
 
     def video_status(self, upload_folder, match_number, team_number, alliance, table_row_no, table_column_no):
@@ -348,6 +371,7 @@ class EventPlanner(QtWidgets.QMainWindow):
     STATUS_UPLOADED = 'Uploaded'
     STATUS_COPIED = 'Copied'
     STATUS_REVIEWED = 'Reviewed'
+    STATUS_PUBLISHED = 'Published'
 
     def button_click(self):
         status = self.sender().text()
@@ -367,6 +391,22 @@ class EventPlanner(QtWidgets.QMainWindow):
                 self.update_ui()
         elif status == self.STATUS_NO_VIDEO:
             self.message_box(f'Please share the folder "{self.sender().property("team_folder")}" to team #{self.sender().property("team_number")} {self.sender().property("team_name")} and ask them to upload game video for match #{self.sender().property("match_number")}')
+
+    def video_button_click(self):
+        status = self.sender().text()
+        command = None
+        if status == self.STATUS_REVIEWED:
+            command = f'.\\game-producer "{self.sender().property("match_manifest")}" "{self.sender().property("publish_video_filename")}"'
+            self.message_box(
+                f'The match has been reviewed by referee, and it\'s ready to be published. Please run following command:\n\n> {command}\n\n The command has been copied to your clipboard.')
+        elif status == self.STATUS_PUBLISHED:
+            command = f'.\\game-producer "{self.sender().property("match_manifest")}" "{self.sender().property("publish_video_filename")}"'
+            self.message_box(
+                f'The match video has been published, but you can regenerate it again by following command:\n\n> {command}\n\n The command has been copied to your clipboard.')
+
+        if command:
+            clipboard = QtGui.QGuiApplication.clipboard()
+            clipboard.setText(command)
 
     def message_box(self, msg):
         msgBox = QtWidgets.QMessageBox()
