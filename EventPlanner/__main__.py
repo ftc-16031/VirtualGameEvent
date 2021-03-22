@@ -33,6 +33,7 @@ class EventPlanner(QtWidgets.QMainWindow):
 
         # TODO validate the root folder
         self.root_folder = root_folder
+        self.label_root_folder.setText(self.root_folder)
 
         self.update_ui()
 
@@ -58,15 +59,23 @@ class EventPlanner(QtWidgets.QMainWindow):
         header.setSectionResizeMode(10, QtWidgets.QHeaderView.ResizeToContents)
 
         self.hbuttonbox = QtWidgets.QHBoxLayout()
-        self.generatebutton = QtWidgets.QPushButton("Generate Folder Skeleton ...")
+        self.generatebutton = QtWidgets.QPushButton("Generate Folder ...")
         self.hbuttonbox.addWidget(self.generatebutton)
         self.generatebutton.clicked.connect(self.generate)
         self.resetbutton = QtWidgets.QPushButton("Reset")
         self.hbuttonbox.addWidget(self.resetbutton)
         self.resetbutton.clicked.connect(self.reset)
 
+        self.hrootfolder = QtWidgets.QHBoxLayout()
+        self.label_root_folder = QtWidgets.QLabel()
+        self.label_root_folder.setFrameStyle(QtWidgets.QFrame.Panel | QtWidgets.QFrame.Sunken)
+        self.label_root_folder.setAlignment(QtCore.Qt.AlignCenter)
+        self.label_root_folder.setText('Please select a root folder ...')
+        self.hrootfolder.addWidget(self.label_root_folder)
+
         self.vboxlayout = QtWidgets.QVBoxLayout()
         self.vboxlayout.addWidget(self.matchstable, stretch=10)
+        self.vboxlayout.addLayout(self.hrootfolder, stretch=1)
         self.vboxlayout.addLayout(self.hbuttonbox, stretch=1)
 
         self.widget.setLayout(self.vboxlayout)
@@ -135,6 +144,7 @@ class EventPlanner(QtWidgets.QMainWindow):
             if returnValue != QtWidgets.QMessageBox.Yes:
                 return
         self.root_folder = filename
+        self.label_root_folder.setText(self.root_folder)
 
         # generate uploads folder
         upload_folder = os.path.join(self.root_folder, self.FOLDER_TEAM)
