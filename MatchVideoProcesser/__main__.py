@@ -150,6 +150,8 @@ class MatchVideoProcessor(QtWidgets.QMainWindow):
         tab_widget = QtWidgets.QWidget()
         tab_widget.setLayout(tab)
         self.eventstabs.addTab(tab_widget, 'Game Start')
+        # save a reference of game start button to be used in load manifest
+        self.game_start_radiobutton = radiobutton
 
         self.events.append([])
         tab = QtWidgets.QVBoxLayout()
@@ -320,9 +322,12 @@ class MatchVideoProcessor(QtWidgets.QMainWindow):
         self.game_start_offset = None
         self.savebutton.setEnabled(False)
 
+    def get_manifest_filename_from_video(self, video_filename):
+        pre, _ = os.path.splitext(video_filename)
+        return f'{pre}.yml'
+
     def save_manifest(self):
-        pre, ext = os.path.splitext(self.media_filename)
-        manifest_filename, _ = QtWidgets.QFileDialog.getSaveFileName(caption="Match Manifest File", dir=f'{pre}.yml')
+        manifest_filename, _ = QtWidgets.QFileDialog.getSaveFileName(caption="Match Manifest File", dir=self.get_manifest_filename_from_video(self.media_filename))
         manifest = {'GameStartOffset': seconds_to_mmss(self.game_start_offset), 'GameEvents': []}
         for row_no in range(self.eventstable.rowCount()):
             row_name = self.eventstable.verticalHeaderItem(row_no).text()
@@ -509,7 +514,23 @@ class MatchVideoProcessor(QtWidgets.QMainWindow):
         elif platform.system() == "Darwin": # for MacOS
             self.mediaplayer.set_nsobject(int(self.videoframe.winId()))
 
+        # try to load the video manifest with the same name as well
+        video_manifest_filename = self.get_manifest_filename_from_video(self.media_filename)
+        if os.path.exists(video_manifest_filename):
+            self.load_manifest_file(video_manifest_filename)
+
         self.play_pause()
+
+    def load_manifest_file(self, video_manifest_filename):
+        with open(video_manifest_filename) as file:
+            video_manifest = yaml.load(file, Loader=yaml.SafeLoader)
+            event_text, point, seconds = self.game_start_event(self.game_start_radiobutton, mmss_to_seconds(video_manifest['GameStartOffset']), {})
+            self.update_events_table(seconds, event_text, point)
+            for item in video_manifest['GameEvents']:
+                point = item['Point']
+                event_text = item['Description']
+                seconds = mmss_to_seconds(item['Time'])
+                self.update_events_table(seconds, event_text, point)
 
     def set_volume(self, volume):
         """Set the volume
