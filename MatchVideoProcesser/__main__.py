@@ -68,8 +68,8 @@ class MatchVideoProcessor(QtWidgets.QMainWindow):
         if media_file is not None:
             self.open_media_file(media_file)
 
-    def ring_goal_event_widgets(self):
-        radiobutton = QtWidgets.QRadioButton("Launched Rings into Goals")
+    def ring_goal_event_widgets(self, stage):
+        radiobutton = QtWidgets.QRadioButton(f"Launched Rings into Goals({stage})")
         ring_goals = QtWidgets.QHBoxLayout()
         high_goal = QtWidgets.QSpinBox()
         high_goal.setRange(0, 3)
@@ -78,11 +78,11 @@ class MatchVideoProcessor(QtWidgets.QMainWindow):
         ring_goals.addWidget(QtWidgets.QLabel('High: '))
         ring_goals.addWidget(high_goal)
         ring_goals.addStretch(1)
-        medium_goal = QtWidgets.QSpinBox()
-        medium_goal.setRange(0, 3)
-        medium_goal.setValue(0)
-        ring_goals.addWidget(QtWidgets.QLabel('Medium: '))
-        ring_goals.addWidget(medium_goal)
+        mid_goal = QtWidgets.QSpinBox()
+        mid_goal.setRange(0, 3)
+        mid_goal.setValue(0)
+        ring_goals.addWidget(QtWidgets.QLabel('Mid: '))
+        ring_goals.addWidget(mid_goal)
         ring_goals.addStretch(1)
         low_goal = QtWidgets.QSpinBox()
         low_goal.setRange(0, 3)
@@ -90,7 +90,7 @@ class MatchVideoProcessor(QtWidgets.QMainWindow):
         ring_goals.addWidget(QtWidgets.QLabel('Low: '))
         ring_goals.addWidget(low_goal)
         ring_goals.addStretch(1)
-        associated_widgets = {'high': high_goal, 'medium': medium_goal, 'low': low_goal}
+        associated_widgets = {'high': high_goal, 'mid': mid_goal, 'low': low_goal}
         return ring_goals, radiobutton, associated_widgets
 
     def create_ui(self):
@@ -164,12 +164,12 @@ class MatchVideoProcessor(QtWidgets.QMainWindow):
         tab.addWidget(radiobutton)
         self.events[1].append({'radio_button': radiobutton, 'handler': self.robot_park_event, 'associated_widgets': {}})
         # ring goal
-        ring_goals, radiobutton, associated_widgets = self.ring_goal_event_widgets()
+        ring_goals, radiobutton, associated_widgets = self.ring_goal_event_widgets('auton')
         tab.addWidget(radiobutton)
         tab.addLayout(ring_goals)
         self.events[1].append({'radio_button': radiobutton, 'handler': self.ring_goal_auto_event, 'associated_widgets': associated_widgets})
         # power shot
-        radiobutton = QtWidgets.QRadioButton("Power Shot Target Knocked")
+        radiobutton = QtWidgets.QRadioButton("Power Shot Target Knocked(auton)")
         tab.addWidget(radiobutton)
         self.events[1].append({'radio_button': radiobutton, 'handler': self.powershot_event, 'associated_widgets': {}})
         # tab
@@ -179,7 +179,7 @@ class MatchVideoProcessor(QtWidgets.QMainWindow):
 
         self.events.append([])
         tab = QtWidgets.QVBoxLayout()
-        ring_goals, radiobutton, associated_widgets = self.ring_goal_event_widgets()
+        ring_goals, radiobutton, associated_widgets = self.ring_goal_event_widgets('teleop')
         tab.addWidget(radiobutton)
         tab.addLayout(ring_goals)
         self.events[2].append({'radio_button': radiobutton, 'handler': self.ring_goal_teleop_event, 'associated_widgets': associated_widgets})
@@ -198,12 +198,12 @@ class MatchVideoProcessor(QtWidgets.QMainWindow):
         tab.addWidget(radiobutton)
         self.events[3].append({'radio_button': radiobutton, 'handler': self.wobblegoal_dropzone_event, 'associated_widgets': {}})
         # ring goal
-        ring_goals, radiobutton, associated_widgets = self.ring_goal_event_widgets()
+        ring_goals, radiobutton, associated_widgets = self.ring_goal_event_widgets('teleop')
         tab.addWidget(radiobutton)
         tab.addLayout(ring_goals)
         self.events[3].append({'radio_button': radiobutton, 'handler': self.ring_goal_teleop_event, 'associated_widgets': associated_widgets})
         # power shot
-        radiobutton = QtWidgets.QRadioButton("Power Shot Target Knocked")
+        radiobutton = QtWidgets.QRadioButton("Power Shot Target Knocked(endgame)")
         tab.addWidget(radiobutton)
         self.events[3].append({'radio_button': radiobutton, 'handler': self.powershot_event, 'associated_widgets': {}})
         # tab
@@ -367,15 +367,15 @@ class MatchVideoProcessor(QtWidgets.QMainWindow):
         return radiobutton.text(), 20, timestamp
 
     def ring_goal_event(self, radiobutton, timestamp, associated_widgets, points_schema):
-        low_goal_point, medium_goal_point, high_goal_point = points_schema
+        low_goal_point, mid_goal_point, high_goal_point = points_schema
         text = radiobutton.text() + ','
         total_points = 0
         if associated_widgets['high'].value() > 0:
             total_points += high_goal_point * associated_widgets['high'].value()
             text += f" high ({associated_widgets['high'].value()})"
-        if associated_widgets['medium'].value() > 0:
-            total_points += medium_goal_point * associated_widgets['medium'].value()
-            text += f" medium ({associated_widgets['medium'].value()})"
+        if associated_widgets['mid'].value() > 0:
+            total_points += mid_goal_point * associated_widgets['mid'].value()
+            text += f" mid ({associated_widgets['mid'].value()})"
         if associated_widgets['low'].value() > 0:
             total_points += low_goal_point * associated_widgets['low'].value()
             text += f" low ({associated_widgets['low'].value()})"
@@ -438,42 +438,50 @@ class MatchVideoProcessor(QtWidgets.QMainWindow):
             if row_name == '--:--':
                 # no event yet, update the initial row
                 target_row_no = row_no
-            elif row_name == 'Total':
-                # update total row
-                previous_total = int(self.eventstable.item(row_no, 1).text())
-                self.eventstable.item(row_no, 1).setText(str(previous_total + point))
+            elif row_name == 'Total' or row_name == 'Game Start':
+                pass
             elif target_row_no is None:
                 # target row not found yet, compare the time and see if we need to insert
                 row_time = mmss_to_seconds(row_name)
                 if row_time > seconds:
-                    target_row_no = row_no + 1
+                    target_row_no = row_no
                     self.eventstable.insertRow(target_row_no)
-            else:
-                # target row already found, add +1 to all the row number for the delete button
-                button = self.eventstable.cellWidget(row_no, 2)
-                button.setProperty('row_no', button.property('row_no') + 1)
+                    break
         if target_row_no is None:
             # insert the row to the end
             target_row_no = self.eventstable.rowCount() - 1
             self.eventstable.insertRow(target_row_no)
         # update target row
-        self.eventstable.setVerticalHeaderItem(target_row_no, QtWidgets.QTableWidgetItem(seconds_to_mmss(seconds)))
+        self.eventstable.setVerticalHeaderItem(target_row_no,
+                                               QtWidgets.QTableWidgetItem(seconds_to_mmss(seconds)))
         self.eventstable.setItem(target_row_no, 0, QtWidgets.QTableWidgetItem(event))
         self.eventstable.setItem(target_row_no, 1, QtWidgets.QTableWidgetItem(str(point)))
         if event != 'Game Start':
             # only add delete button for point events
             button = QtWidgets.QPushButton('X')
-            button.setProperty('row_no', target_row_no)
             button.clicked.connect(self.delete_button_click)
             self.eventstable.setCellWidget(target_row_no, 2, button)
+        self.calculate_total()
+
+    def calculate_total(self):
+        # update total
+        total = 0
+        for row_no in range(self.eventstable.rowCount()):
+            row_name = self.eventstable.verticalHeaderItem(row_no).text()
+            if row_name == '--:--' or row_name == 'Game Start':
+                # skip
+                pass
+            elif row_name == 'Total':
+                # update total row
+                self.eventstable.item(row_no, 1).setText(str(total))
+            else:
+                total += int(self.eventstable.item(row_no, 1).text())
+
 
     def delete_button_click(self):
-        delete_row_no = self.sender().property("row_no")
+        delete_row_no = self.eventstable.indexAt(self.sender().pos()).row()
         self.eventstable.removeRow(delete_row_no)
-        for row_no in range (delete_row_no, self.eventstable.rowCount()):
-            button = self.eventstable.cellWidget(row_no, 2)
-            if button:
-                button.setProperty('row_no', button.property('row_no') - 1)
+        self.calculate_total()
 
     def open_file(self):
         """Open a media file in a MediaPlayer
