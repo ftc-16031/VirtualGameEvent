@@ -13,6 +13,7 @@ import yaml
 from os import path
 import sqlite3
 import shutil
+import time
 
 from PySide2 import QtWidgets, QtGui, QtCore
 
@@ -25,7 +26,6 @@ class EventPlanner(QtWidgets.QMainWindow):
         self.showMaximized()
 
         self.root_folder = None
-
         self.create_ui()
 
         if db_file is not None:
@@ -43,8 +43,8 @@ class EventPlanner(QtWidgets.QMainWindow):
         self.widget = QtWidgets.QWidget(self)
         self.setCentralWidget(self.widget)
 
-        self.matchstable = QtWidgets.QTableWidget(0, 11)
-        self.matchstable.setHorizontalHeaderLabels(['Red', 'Action', 'Red', 'Action', 'Score', 'Blue', 'Action', 'Blue', 'Action', 'Score', 'Video'])
+        self.matchstable = QtWidgets.QTableWidget(0, 12)
+        self.matchstable.setHorizontalHeaderLabels(['Red', 'Action', 'Red', 'Action', 'Score', 'Blue', 'Action', 'Blue', 'Action', 'Score', 'Video', 'FTC'])
         header = self.matchstable.horizontalHeader()
         header.setSectionResizeMode(0, QtWidgets.QHeaderView.Stretch)
         header.setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeToContents)
@@ -57,6 +57,7 @@ class EventPlanner(QtWidgets.QMainWindow):
         header.setSectionResizeMode(8, QtWidgets.QHeaderView.ResizeToContents)
         header.setSectionResizeMode(9, QtWidgets.QHeaderView.ResizeToContents)
         header.setSectionResizeMode(10, QtWidgets.QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(11, QtWidgets.QHeaderView.ResizeToContents)
 
         self.hbuttonbox = QtWidgets.QHBoxLayout()
         self.generatebutton = QtWidgets.QPushButton("Generate Folder ...")
@@ -288,6 +289,11 @@ class EventPlanner(QtWidgets.QMainWindow):
             self.matchstable.setCellWidget(row_no, 10, button)
             button.clicked.connect(self.video_button_click)
 
+            # FTC button
+            button = QtWidgets.QPushButton('-')
+            self.matchstable.setCellWidget(row_no, 11, button)
+            button.clicked.connect(self.ftc_button_click)
+
             row_no += 1
 
     def update_ui(self):
@@ -307,23 +313,31 @@ class EventPlanner(QtWidgets.QMainWindow):
                     item = self.matchstable.item(row_no, 9)
                     item.setText(str(blue1_score + blue2_score))
                 # update video button
-                button = self.matchstable.cellWidget(row_no, 10)
+                button_video = self.matchstable.cellWidget(row_no, 10)
+                button_ftc = self.matchstable.cellWidget(row_no, 11)
                 if red1_score and red2_score and blue1_score and blue2_score:
                     publish_video = os.path.normpath(
                         os.path.join(self.root_folder, self.FOLDER_PUBLISHED, f'match{match["match"]}.mp4'))
                     match_manifest = os.path.normpath(
                         os.path.join(self.root_folder, self.FOLDER_MATCH, f'Match #{match["match"]}',
                                      f'match{match["match"]}.yml'))
-                    button.setProperty('match_number', match["match"])
-                    button.setProperty('publish_video_filename', publish_video)
-                    button.setProperty('match_manifest', match_manifest)
+                    button_video.setProperty('match_number', match["match"])
+                    button_video.setProperty('publish_video_filename', publish_video)
+                    button_video.setProperty('match_manifest', match_manifest)
 
                     if os.path.exists(publish_video):
-                        button.setText(self.STATUS_PUBLISHED)
+                        button_video.setText(self.STATUS_PUBLISHED)
                     else:
-                        button.setText(self.STATUS_REVIEWED)
+                        button_video.setText(self.STATUS_REVIEWED)
+                    button_ftc.setProperty('match_number', match["match"])
+                    button_ftc.setProperty('red1', match["red1"])
+                    button_ftc.setProperty('red2', match["red2"])
+                    button_ftc.setProperty('blue1', match["blue1"])
+                    button_ftc.setProperty('blue2', match["blue2"])
+                    button_ftc.setText(self.STATUS_SAVE)
                 else:
-                    button.setText('-')
+                    button_video.setText('-')
+                    button_ftc.setText('-')
                 row_no += 1
 
     def video_status(self, upload_folder, match_number, team_number, alliance, table_row_no, table_column_no):
@@ -372,6 +386,7 @@ class EventPlanner(QtWidgets.QMainWindow):
     STATUS_COPIED = 'Copied'
     STATUS_REVIEWED = 'Reviewed'
     STATUS_PUBLISHED = 'Published'
+    STATUS_SAVE = 'ScoreKeeper'
 
     def button_click(self):
         status = self.sender().text()
@@ -407,6 +422,148 @@ class EventPlanner(QtWidgets.QMainWindow):
         if command:
             clipboard = QtGui.QGuiApplication.clipboard()
             clipboard.setText(command)
+
+    def ftc_button_click(self):
+        button_ftc = self.sender()
+        status = button_ftc.text()
+        if status == self.STATUS_SAVE:
+            msg_box = QtWidgets.QMessageBox()
+            msg_box.setIcon(QtWidgets.QMessageBox.Warning)
+            msg_box.setText(f'The match has been reviewed by referee, do you want to save the score back to FTC Score Keeper software ? \n\n'
+                            f' - It will be saved as a "Scorekeeper Edit" in this match\'s history,'
+                            f' and you can review and adjust before commit the score.')
+            msg_box.setWindowTitle("Are you sure?")
+            msg_box.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+            return_value = msg_box.exec()
+            if return_value == QtWidgets.QMessageBox.Yes:
+                conn = sqlite3.connect(self.db_file)
+                cur = conn.cursor()
+                ts = int(time.time()*1000.0)
+                match_number = button_ftc.property('match_number')
+                red1 = button_ftc.property('red1')
+                red2 = button_ftc.property('red2')
+                blue1 = button_ftc.property('blue1')
+                blue2 = button_ftc.property('blue2')
+
+                game_events_red1 = self.read_game_events(match_number, 'Red', red1)
+                game_events_red2 = self.read_game_events(match_number, 'Red', red2)
+                game_events_blue1 = self.read_game_events(match_number, 'Blue', blue1)
+                game_events_blue2 = self.read_game_events(match_number, 'Blue', blue2)
+
+                result = cur.execute(self.generate_sql_points(match_number, ts, 'Red', game_events_red1, game_events_red2))
+                result = cur.execute(self.generate_sql_points(match_number, ts, 'Blue', game_events_blue1, game_events_blue2))
+                result = cur.execute(self.generate_sql_penalty(match_number, ts, 'Red', game_events_red1, game_events_red2))
+                result = cur.execute(self.generate_sql_penalty(match_number, ts, 'Blue', game_events_blue1, game_events_blue2))
+                result = cur.execute(self.generate_sql_commit(match_number, ts))
+                conn.commit()
+                conn.close()
+                self.message_box(
+                    f'The score of match #{match_number} has been saved back to FTC Score Keeper as a "Scorekeeper Edit"'
+                    f' in this match\'s history. please: \n'
+                    f' - Close FTC Scorekeeper if it\'s open\n'
+                    f' - Login\n'
+                    f' - Go to "Match Control"\n'
+                    f' - Click "Enter Scores" or "Edit" for the corresponding match\n'
+                    f' - Click "View History" and select generated record\n'
+                    f' - Click "Copy to Editor"\n'
+                    f' - Review and adjust before "Commit"\n')
+
+    def read_game_events(self, match_number, alliance, team_number):
+        match_folder = os.path.join(self.root_folder, self.FOLDER_MATCH, f'Match #{match_number}')
+        match_file_prefix = self.match_video_file_prefix(alliance, team_number, match_number)
+        video_manifest_filename = os.path.join(match_folder, f'{match_file_prefix}.yml')
+        with open(video_manifest_filename) as file:
+            video_manifest = yaml.load(file, Loader=yaml.SafeLoader)
+            return video_manifest['GameEvents']
+
+    PATTERN_HIGH_GOAL = re.compile(r'.* high \(([0-9]+)\).*')
+    PATTERN_MID_GOAL = re.compile(r'.* mid \(([0-9]+)\).*')
+    PATTERN_LOW_GOAL = re.compile(r'.* low \(([0-9]+)\).*')
+
+    def generate_sql_points(self, match_number, ts, alliance, game_event1, game_event2):
+        alliance_id = 1 if alliance == 'Blue' else 0
+        points = {'match': match_number, 'ts': ts, 'alliance': alliance_id}
+        # park
+        points['navigated1'] = 1 if len(
+            [True for i in game_event1 if i['Description'] == 'Robot Parked']) > 0 else 0
+        points['navigated2'] = 1 if len(
+            [True for i in game_event2 if i['Description'] == 'Robot Parked']) > 0 else 0
+        # wobble auto
+        wobble_target_zone = len(
+            [True for i in game_event1 + game_event2 if i['Description'] == 'Wobble Goal Delivered to Target Zone'])
+        points['wobbleDelivered1'] = 1 if wobble_target_zone > 0 else 0
+        points['wobbleDelivered2'] = 1 if wobble_target_zone > 1 else 0
+        # tower goal
+        points['autoTowerLow'] = 0
+        points['autoTowerMid'] = 0
+        points['autoTowerHigh'] = 0
+        points['teleopTowerLow'] = 0
+        points['teleopTowerMid'] = 0
+        points['teleopTowerHigh'] = 0
+        for i in game_event1 + game_event2:
+            if 'Launched Rings into Goals' in i['Description']:
+                m = self.PATTERN_LOW_GOAL.match(i['Description'])
+                low = int(m.group(1)) if m else 0
+                m = self.PATTERN_MID_GOAL.match(i['Description'])
+                mid = int(m.group(1)) if m else 0
+                m = self.PATTERN_HIGH_GOAL.match(i['Description'])
+                high = int(m.group(1)) if m else 0
+                if '(auton)' in i['Description']:
+                    points['autoTowerLow'] += low
+                    points['autoTowerMid'] += mid
+                    points['autoTowerHigh'] += high
+                else:
+                    points['teleopTowerLow'] += low
+                    points['teleopTowerMid'] += mid
+                    points['teleopTowerHigh'] += high
+        # wobble end game
+        wobble_start_line = len(
+            [True for i in game_event1 + game_event2 if i['Description'] == 'Wobble Goal Delivered to Start Line'])
+        wobble_drop_zone = len(
+            [True for i in game_event1 + game_event2 if i['Description'] == 'Wobble Goal Delivered to Drop Zone'])
+        if wobble_drop_zone >= 2:
+            points['wobbleEnd1'] = 2
+            points['wobbleEnd2'] = 2
+        elif wobble_drop_zone == 1:
+            points['wobbleEnd1'] = 2
+            points['wobbleEnd2'] = 1 if wobble_start_line > 0 else 0
+        else:
+            points['wobbleEnd1'] = 1 if wobble_start_line > 1 else 0
+            points['wobbleEnd2'] = 1 if wobble_start_line > 0 else 0
+        # TODO wobbleRings1, wobbleRings2
+        points['wobbleRings1'] = 0
+        points['wobbleRings2'] = 0
+        # power shot
+        power_shot_auton = len(
+            [True for i in game_event1 + game_event2 if i['Description'] == 'Power Shot Target Knocked(auton)'])
+        power_shot_endgame = len(
+            [True for i in game_event1 + game_event2 if i['Description'] == 'Power Shot Target Knocked(endgame)'])
+        points['autoPowerShotLeft'] = 1 if power_shot_auton > 0 else 0
+        points['autoPowerShotCenter'] = 1 if power_shot_auton > 1 else 0
+        points['autoPowerShotRight'] = 1 if power_shot_auton > 2 else 0
+        points['endPowerShotLeft'] = 1 if power_shot_endgame > 0 else 0
+        points['endPowerShotCenter'] = 1 if power_shot_endgame > 1 else 0
+        points['endPowerShotRight'] = 1 if power_shot_endgame > 2 else 0
+        fields_str = '", "'.join(points.keys())
+        value_str = ', '.join([str(v) for v in points.values()])
+        return f'INSERT INTO qualsGameSpecificHistory ("{fields_str}") VALUES ({value_str})'
+
+    def generate_sql_penalty(self, match_number, ts, alliance, game_event1, game_event2):
+        alliance_id = 1 if alliance == 'Blue' else 0
+        penalty = {'match': match_number, 'ts': ts, 'alliance': alliance_id, 'card1': 0, 'card2': 0, 'dq1': 0, 'dq2': 0, 'noshow1': 0, 'noshow2': 0, 'adjust': 0}
+        penalty['minor'] = len(
+            [True for i in game_event1 + game_event2 if 'Minor Penalty' in i['Description']])
+        penalty['major'] = len(
+            [True for i in game_event1 + game_event2 if 'Major Penalty' in i['Description']])
+        fields_str = '", "'.join(penalty.keys())
+        value_str = ', '.join([str(v) for v in penalty.values()])
+        return f'INSERT INTO qualsScoresHistory ("{fields_str}") VALUES ({value_str})'
+
+    def generate_sql_commit(self, match_number, ts):
+        fields = {'match': match_number, 'ts': ts, 'start': -1, 'random': -1, 'type': 6}
+        fields_str = '", "'.join(fields.keys())
+        value_str = ', '.join([str(v) for v in fields.values()])
+        return f'INSERT INTO qualsCommitHistory ("{fields_str}") VALUES ({value_str})'
 
     def message_box(self, msg):
         msgBox = QtWidgets.QMessageBox()
