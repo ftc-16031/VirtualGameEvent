@@ -1,18 +1,18 @@
 GameStartOffset: 0:28
 GameEvents:
 - Time: 0:35
-  Description: "Power Shot Target #A Launched"
+  Description: Power Shot Target Knocked(auton)
   Point: 15
 - Time: 2:07
-  Description: "Launched Rings into High Goal"
-  Point: 6
+  Description: Launched Rings into Goals(teleop), high (3)
+  Point: 18
 - Time: 2:13
-  Description: "Launched Rings into Medium Goal"
-  Point: 4
+  Description: Launched Rings into Goals(teleop), high (2) low (1)
+  Point: 14
 - Time: 2:41
-  Description: "#1 Wobble Goal Delivered to Drop Zone"
+  Description: Wobble Goal Delivered to Drop Zone
   Point: 20
 - Time: 2:55
-  Description: "#2 Wobble Goal Delivered to Drop Zone"
+  Description: Wobble Goal Delivered to Drop Zone
   Point: 20
 

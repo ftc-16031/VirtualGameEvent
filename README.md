@@ -92,22 +92,37 @@ or
 # Examples of manifest files:
 ## Video Manifest:
 ```yaml
-GameStartOffset: 0:28
+GameStartOffset: 0:50
 GameEvents:
-- Time: 0:35
-  Description: "Power Shot Target #A Launched"
+- Time: 0:57
+  Description: Power Shot Target Knocked(auton)
   Point: 15
-- Time: 2:07
-  Description: "Launched Rings into High Goal"
-  Point: 6
-- Time: 2:13
-  Description: "Launched Rings into Medium Goal"
-  Point: 4
-- Time: 2:41
-  Description: "#1 Wobble Goal Delivered to Drop Zone"
+- Time: 0:59
+  Description: Power Shot Target Knocked(auton)
+  Point: 15
+- Time: 1:02
+  Description: Power Shot Target Knocked(auton)
+  Point: 15
+- Time: 1:09
+  Description: Wobble Goal Delivered to Target Zone
+  Point: 15
+- Time: 1:15
+  Description: Wobble Goal Delivered to Target Zone
+  Point: 15
+- Time: 1:20
+  Description: Robot Parked
+  Point: 5
+- Time: 2:40
+  Description: Launched Rings into Goals(teleop), mid (3)
+  Point: 12
+- Time: 2:45
+  Description: Launched Rings into Goals(teleop), high (3)
+  Point: 18
+- Time: 3:02
+  Description: Wobble Goal Delivered to Drop Zone
   Point: 20
-- Time: 2:55
-  Description: "#2 Wobble Goal Delivered to Drop Zone"
+- Time: 3:19
+  Description: Wobble Goal Delivered to Drop Zone
   Point: 20
 ```
 ## Match Manifest:

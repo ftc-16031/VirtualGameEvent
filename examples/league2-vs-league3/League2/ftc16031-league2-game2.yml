@@ -1,21 +1,21 @@
 GameStartOffset: 0:29
 GameEvents:
 - Time: 0:39
-  Description: "Power Shot Target #A Launched"
+  Description: Power Shot Target Knocked(auton)
   Point: 15
 - Time: 0:42
-  Description: "Power Shot Target #B Launched"
+  Description: Power Shot Target Knocked(auton)
   Point: 15
 - Time: 0:49
-  Description: "#1 Wobble Goal Delivered to Target Zone"
+  Description: Wobble Goal Delivered to Target Zone
   Point: 15
 - Time: 1:01
-  Description: "Parked in Launch Line"
+  Description: Robot Parked
   Point: 5
 - Time: 2:43
-  Description: "#1 Wobble Goal Delivered to Drop Zone"
+  Description: Wobble Goal Delivered to Drop Zone
   Point: 20
 - Time: 2:59
-  Description: "#2 Wobble Goal Delivered to Drop Zone"
+  Description: Wobble Goal Delivered to Drop Zone
   Point: 20
 
