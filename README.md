@@ -158,8 +158,9 @@ VirtualGame:
 # Current status:
 - Defined "match manifest" and ""video manifest" file formats
 - Major feature of Event Planner and Match Video Processor has been implemented
+- Write the score back to FTC scorekeeper software database
 - TBA : 
-  - Write the score back to FTC score software database
+  - Issues to handle mid goal points with FTC score keeper
   - Fine tuning of Event Planner UI
 
 

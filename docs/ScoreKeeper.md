@@ -21,5 +21,17 @@
 - If both team of the alliance video reviewed, a score will show up
 - Once both alliances reviewed and score shows up, please notify the video publisher to generate the game video.
 ## Import final score to FTC score software ##
-- Currently it needs to manually input the game score to FTC scorekeeper software, in next phase, we planning to automate it
+- After the match has been reviewed by referee, the button on FTC column will be enabled and show as "ScoreKeeper"
+- Click "ScoreKeeper" button will save the score of the match back to FTC Score Keeper as a "Scorekeeper Edit" of that match's history
+- Close FTC Scorekeeper if it's open
+- Reopen FTC Scorekeeper
+- Login
+- Go to "Match Control"
+- Click "Enter Scores" or "Edit" for the corresponding match
+- Click "View History" and select generated record
+- Click "Copy to Editor"
+- Review and adjust before "Commit"
+### KNOWN ISSUE ###
+- FTC Scorekeeper is design to for traditional live event, and treat the mid goal points differently than remote event, please manually review and adjust the mid goal points in FTC score keeper. 
+
 

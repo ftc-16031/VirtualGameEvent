@@ -15,4 +15,5 @@
 - You can delete an event by click "X" button
 ## Save Video Manifest file ##
 - When game has been reviewed, click "Save Video Manifest" button to generate the corresponding video manifest file.
+- When open the video file again, if the video manifest file (*.yml) with the same name exists, the previous game events will be automatically loaded together with the video
 
